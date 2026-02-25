@@ -3,10 +3,12 @@ import pygame
 import pygame.gfxdraw
 from typing import Any
 
+WIDTH = 900
+HEIGHT = 700
 
 pygame.init()
 
-screen = pygame.display.set_mode((600, 600))
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 pygame.display.set_caption("Drones")
 
