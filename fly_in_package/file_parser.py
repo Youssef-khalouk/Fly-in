@@ -7,7 +7,7 @@ class Parser:
         self.nb_drones = 0
         self.start: dict = {}
         self.end: dict = {}
-        self.hubs: dict[dict] = {}
+        self.hubs: list[dict] = []
         self.error: str = ""
 
     def parse(self) -> bool:
@@ -33,6 +33,11 @@ class Parser:
                     elif line.startswith("hub:"):
                         if not self.__parse_hub(line):
                             return False
+
+                    elif line.startswith("connection:"):
+                        if not self.__parse_hub(line):
+                            return False
+
         except (FileNotFoundError, Exception) as e:
             self.error = str(e)
             return False
@@ -67,12 +72,12 @@ class Parser:
         try:
             dc["x"] = int(lwords[2])
         except Exception:
-            self.error = "the x cordinet in should be int!"
+            self.error = f"the x cordinet in should be int, in line '{line}'"
             return False
         try:
             dc["y"] = int(lwords[3])
         except Exception:
-            self.error = "the y cordinet should be int!"
+            self.error = f"the y cordinet should be int, in line '{line}'"
             return False
 
         color = lwords[4]
@@ -83,18 +88,61 @@ class Parser:
                     dc["color"] = value[0:-1]
                 else:
                     nm = color_name[1:]
-                    self.error = f"the key '{nm}' is not valid for color!"
+                    self.error = f"the key '{nm}' is not valid for color, in line '{line}'"
                     return False
             except Exception:
-                self.error = "color section is not well"
+                self.error = f"color section is not well, in line '{line}'"
                 return False
         else:
-            self.error = "messing parantheses!"
+            self.error = f"messing parantheses, in line '{line}'"
             return False
 
         return True
 
     def __parse_hub(self, line: str) -> bool:
+        # hub: roof1 3 4 [zone=restricted color=red]
+
+        lwords = line.split()
+
+        dc = {}
+
+        dc["name"] = lwords[1]
+        try:
+            dc["x"] = int(lwords[2])
+        except Exception:
+            self.error = f"the x cordinet in should be int, in line '{line}'"
+            return False
+        try:
+            dc["y"] = int(lwords[3])
+        except Exception:
+            self.error = f"the y cordinet should be int, in line '{line}'"
+            return False
+
+        s = lwords[4] + lwords[5]
+
+        if s.startswith("[") and s.endswith("]"):
+            keys = s[1:-1].split(" ")
+
+            try:
+                color_name, value = s.split("")
+                if color_name == "[color":
+                    dc["color"] = value[0:-1]
+                else:
+                    nm = color_name[1:]
+                    self.error = f"the key '{nm}' is not valid for color, in line '{line}'"
+                    return False
+            except Exception:
+                self.error = f"color section is not well, in line '{line}'"
+                return False
+        else:
+            self.error = f"messing parantheses, in line '{line}'"
+            return False
+
+        self.hubs.append(dc)
+
+        return True
+
+    def __parse_connection(self, line: str) -> bool:
         return True
 
     def set_file(self, file: str) -> None:

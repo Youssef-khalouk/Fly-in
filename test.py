@@ -10,3 +10,5 @@ if not parser.parse():
 print(str(parser.nb_drones))
 print(str(parser.start))
 print(str(parser.end))
+print(str(parser.hubs))
+# print(str())
