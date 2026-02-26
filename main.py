@@ -1,7 +1,5 @@
 
 import pygame
-import pygame.gfxdraw
-from typing import Any
 
 WIDTH = 900
 HEIGHT = 700

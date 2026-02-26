@@ -8,7 +8,7 @@ class Parser:
         self.start: dict = {}
         self.end: dict = {}
         self.hubs: list[dict] = []
-        self.error: str = ""
+        self.error: str = "no error"
 
     def parse(self) -> bool:
         if not self.file:
@@ -18,6 +18,10 @@ class Parser:
             with open(self.file, "r") as file:
                 lines: list[str] = file.readlines()
                 for line in lines:
+                    if line.startswith("#"):
+                        continue
+                    if line.endswith("\n"):
+                        line = line[0:-1]
                     if line.startswith("nb_drones:"):
                         if not self.__parse_nb_drones(line):
                             return False
@@ -35,7 +39,7 @@ class Parser:
                             return False
 
                     elif line.startswith("connection:"):
-                        if not self.__parse_hub(line):
+                        if not self.__parse_connection(line):
                             return False
 
         except (FileNotFoundError, Exception) as e:
@@ -72,7 +76,7 @@ class Parser:
         try:
             dc["x"] = int(lwords[2])
         except Exception:
-            self.error = f"the x cordinet in should be int, in line '{line}'"
+            self.error = f"the x cordinet should be int, in line '{line}'"
             return False
         try:
             dc["y"] = int(lwords[3])
@@ -80,27 +84,14 @@ class Parser:
             self.error = f"the y cordinet should be int, in line '{line}'"
             return False
 
-        color = lwords[4]
-        if color.startswith("[") and color.endswith("]"):
-            try:
-                color_name, value = color.split("=")
-                if color_name == "[color":
-                    dc["color"] = value[0:-1]
-                else:
-                    nm = color_name[1:]
-                    self.error = f"the key '{nm}' is not valid for color, in line '{line}'"
-                    return False
-            except Exception:
-                self.error = f"color section is not well, in line '{line}'"
-                return False
-        else:
-            self.error = f"messing parantheses, in line '{line}'"
-            return False
+        metadata = self.__parse_zone_metadata(" ".join(lwords[4:]), line)
 
+        if not metadata:
+            return False
+        dc.update(metadata)
         return True
 
     def __parse_hub(self, line: str) -> bool:
-        # hub: roof1 3 4 [zone=restricted color=red]
 
         lwords = line.split()
 
@@ -118,32 +109,69 @@ class Parser:
             self.error = f"the y cordinet should be int, in line '{line}'"
             return False
 
-        s = lwords[4] + lwords[5]
+        metadata = self.__parse_zone_metadata(" ".join(lwords[4:]), line)
 
-        if s.startswith("[") and s.endswith("]"):
-            keys = s[1:-1].split(" ")
-
-            try:
-                color_name, value = s.split("")
-                if color_name == "[color":
-                    dc["color"] = value[0:-1]
-                else:
-                    nm = color_name[1:]
-                    self.error = f"the key '{nm}' is not valid for color, in line '{line}'"
-                    return False
-            except Exception:
-                self.error = f"color section is not well, in line '{line}'"
-                return False
-        else:
-            self.error = f"messing parantheses, in line '{line}'"
+        if not metadata:
             return False
-
-        self.hubs.append(dc)
-
+        self.hubs.append(metadata)
         return True
 
     def __parse_connection(self, line: str) -> bool:
         return True
 
+    def __parse_zone_metadata(self, data: str, line: str = "") -> dict | None:
+        if data.startswith("[") and data.endswith("]"):
+            data = data[1:-1]
+        else:
+            self.error = f"messing paranthes in line '{line}'"
+            return None
+        tags = data.split()
+        dc: dict = {"zone": "normal",
+                    "color": "none",
+                    "max_drones": 1}
+        for tag in tags:
+            key_value = tag.split("=")
+            if len(key_value) != 2:
+                self.error = f"there is error in this metadata line ->'{line}'"
+                return None
+            if key_value[0] == "":
+                self.error = f"messing key name in this line -> '{line}'"
+                return None
+            if key_value[1] == "":
+                self.error = "messing value for this key"
+                self.error += f" '{key_value[0]}' in this line -> '{line}'"
+                return None
+            if key_value[0] == "max_drones":
+                try:
+                    num = int(key_value[1])
+                    dc["max_drones"] = num
+                except Exception as e:
+                    self.error = str(e) + f" in line -> {line}"
+                    return None
+            else:
+                dc[key_value[0]] = key_value[1]
+        return dc
+
     def set_file(self, file: str) -> None:
         self.file = file
+
+
+
+
+
+
+
+
+
+parser = Parser()
+parser.set_file("network_of_drones.txt")
+
+if not parser.parse():
+    print("Error:", parser.error)
+
+print(str(parser.nb_drones))
+print(str(parser.start))
+print(str(parser.end))
+for hub in parser.hubs:
+    print(hub)
+# print(str())
