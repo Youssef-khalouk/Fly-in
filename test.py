@@ -10,5 +10,9 @@ if not parser.parse():
 print(str(parser.nb_drones))
 print(str(parser.start))
 print(str(parser.end))
-print(str(parser.hubs))
-# print(str())
+print("----")
+for hub in parser.hubs:
+    print(hub)
+print("----")
+for connection in parser.connections:
+    print(connection)
