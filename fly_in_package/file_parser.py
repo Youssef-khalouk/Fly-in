@@ -1,4 +1,12 @@
 
+class DroneNetwork:
+    def __init__(self):
+        self.nb_drones = 0
+        self.hubs = {}
+        self.connections = []
+        self.start = None
+        self.end = None
+
 
 class Parser:
 
@@ -8,7 +16,7 @@ class Parser:
         self.start: dict = {}
         self.end: dict = {}
         self.hubs: list[dict] = []
-        self.connections: list = []
+        self.connections: list[tuple] = []
         self.error: str = "no error"
         self.__hubs_names: list[str] = []
 
@@ -229,3 +237,12 @@ class Parser:
 
     def get_error(self):
         return self.error
+
+    def get_DroneNetwork(self) -> DroneNetwork:
+        drone_network = DroneNetwork()
+        drone_network.nb_drones = self.nb_drones
+        drone_network.hubs = self.hubs
+        drone_network.connections = self.connections
+        drone_network.start = self.start
+        drone_network.end = self.end
+        return drone_network
