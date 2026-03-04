@@ -67,64 +67,96 @@ class Drone:
     def __init__(self, drone_image):
         self.x = 0
         self.y = 0
+        self.zone = "normal"
         self.drone_image = drone_image
         self.SU = 1
         self.drone_angle = 180
         self.rotated_drone = self.drone_image
         self.drone = self.__get_drone()
         self.__rotate_drone(0)
-        self.speed = 3
-        self.path = []
+        self.speed = 4
+        self.path: tuple[int, int, str] | str = []
         self.which_hub = 0
         self.old_num = -1
+
+        self.mv_x = 0
+        self.mv_y = 0
 
         self.segment_start_x = 0
         self.segment_start_y = 0
         self.segment_total_distance = 0
+    
+    def set_path(self, path: list[tuple | str]) -> None:
+        if path:
+            self.path = path.copy()
+            self.x, self.y, self.zone = path[0]
 
     def update(self) -> None:
         if not self.path:
             return
         if self.which_hub >= len(self.path):
             return
+        
+        wait = False
+        
+        i = self.which_hub
+        while self.path[i] == "wait":
+            i += 1
+            wait = True
+        target_x, target_y, zone = self.path[i]
+
         if self.which_hub != self.old_num:
+            self.mv_x = self.x
+            self.mv_y = self.y
             self.old_num = self.which_hub
-            x, y = self.path[self.which_hub]
-            angle_radians = math.atan2(x-self.x, y-self.y)
+            angle_radians = math.atan2(target_x-self.mv_x, target_y-self.mv_y)
             angle_degrees = math.degrees(angle_radians)
             self.__rotate_drone(angle_degrees)
 
-            self.segment_start_x = self.x
-            self.segment_start_y = self.y
-            dx = x - self.x
-            dy = y - self.y
+            self.segment_start_x = self.mv_x
+            self.segment_start_y = self.mv_y
+            dx = target_x - self.mv_x
+            dy = target_y - self.mv_y
             self.segment_total_distance = math.sqrt(dx*dx + dy*dy)
 
-        target_x, target_y = self.path[self.which_hub]
-        dx = target_x - self.x
-        dy = target_y - self.y
+        dx = target_x - self.mv_x
+        dy = target_y - self.mv_y
 
         distance = math.sqrt(dx*dx + dy*dy)
 
         # update progress
         traveled = self.segment_total_distance - distance
-        progress = traveled / self.segment_total_distance
+        if self.segment_total_distance == 0:
+            progress = 0
+        else:
+            progress = traveled / self.segment_total_distance
         progress = max(0, min(1, progress))  # clamp 0..1
         # smooth speed
-        current_speed = self.speed * 4 * progress * (1 - progress)
+        if zone == "restricted":
+            current_speed = (self.speed/2) * 4 * progress * (1 - progress)
+        else:
+            current_speed = self.speed * 4 * progress * (1 - progress)
         # minimum speed so it doesn't freeze at start
         current_speed = max(current_speed, 0.5)
 
-        scale = 50 + 20 * math.sin(math.pi * progress)
-        self.drone = self.__get_drone(scale)
+        if not wait:
+            scale = 50 + 20 * math.sin(math.pi * progress)
+            self.drone = self.__get_drone(scale)
 
         if distance > current_speed:
-            self.x += (dx / distance) * current_speed
-            self.y += (dy / distance) * current_speed
+            self.mv_x += (dx / distance) * current_speed
+            self.mv_y += (dy / distance) * current_speed
+            if not wait:
+                self.x = self.mv_x
+                self.y = self.mv_y
         else:
             self.which_hub += 1
-            self.x = target_x
-            self.y = target_y
+            self.mv_x = target_x
+            self.mv_y = target_y
+            if not wait:
+                self.x = target_x
+                self.y = target_y
+                self.zone = zone
 
     def get_position(self):
         return (self.x, self.y)
@@ -163,7 +195,7 @@ class Py_Game:
 
     def __init__(self):
         self.width = 1000
-        self.height = 1000
+        self.height = 800
         self.SU = 1.0
         self.canvas_x = 0
         self.canvas_y = 0
@@ -218,11 +250,13 @@ class Py_Game:
 
         path = []
         for hub in self.hubs:
-            path.append((hub.x*100+20, hub.y*100+20))
+            path.append((hub.x*100+20, hub.y*100+20, "normal"))
 
         for drone in self.drones:
             random.shuffle(path)
-            drone.path = path.copy()
+            drone.set_path(path)
+
+        self.drones[0].path[1] = "wait"
 
 
 
