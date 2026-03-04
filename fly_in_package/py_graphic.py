@@ -203,7 +203,7 @@ class Py_Game:
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height), pygame.SCALED | pygame.DOUBLEBUF)
         pygame.display.set_caption("Fly_in")
-        self.drone_image = pygame.image.load("images/drone4.png"
+        self.drone_image = pygame.image.load("images/drone.png"
                                              ).convert_alpha()
         self.ground_image = pygame.image.load("images/ground.png"
                                               ).convert_alpha()
