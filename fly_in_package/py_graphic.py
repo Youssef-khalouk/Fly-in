@@ -4,17 +4,16 @@ from typing import Any
 import math
 import random
 
-BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)
-
 
 class Hub:
-    def __init__(self, x: int, y: int, color: tuple):
+    def __init__(self, name: str, x: int, y: int, color: tuple, zone: str):
+        self.name = name
         self.SU = 1
         self.size = 90
         self.x = x
         self.y = y
         self.color = color
+        self.zone = zone
         self.hub_surface = self.__get_hub_surface()
 
     def scall(self, su: float) -> None:
@@ -62,20 +61,20 @@ class Hub:
 
 
 class Drone:
-    drone_image = None
-
-    def __init__(self, drone_image):
-        self.x = 0
-        self.y = 0
+    def __init__(self, drone_image, x: int = 0, y: int = 0):
+        # deferent place for every drone in the hub
+        self.place = random.randint(10, 40)
+        self.x = x + self.place
+        self.y = y + self.place
         self.zone = "normal"
         self.drone_image = drone_image
         self.SU = 1
-        self.drone_angle = 180
+        self.drone_angle = 0
         self.rotated_drone = self.drone_image
         self.drone = self.__get_drone()
         self.__rotate_drone(0)
         self.speed = 4
-        self.path: tuple[int, int, str] | str = []
+        self.path: tuple[tuple[int] | str] | str = []
         self.which_hub = 0
         self.old_num = -1
 
@@ -85,20 +84,24 @@ class Drone:
         self.segment_start_x = 0
         self.segment_start_y = 0
         self.segment_total_distance = 0
-    
+
     def set_path(self, path: list[tuple | str]) -> None:
-        if path:
-            self.path = path.copy()
-            self.x, self.y, self.zone = path[0]
+        self.path = []
+        for p in path:
+            if isinstance(p, tuple):
+                self.path.append((p[0] + self.place, p[1] + self.place, p[2]))
+            else:
+                self.path.append(p)
+        self.x, self.y, h = self.path[0]
 
     def update(self) -> None:
         if not self.path:
             return
         if self.which_hub >= len(self.path):
             return
-        
+
         wait = False
-        
+
         i = self.which_hub
         while self.path[i] == "wait":
             i += 1
@@ -173,7 +176,6 @@ class Drone:
         return pygame.transform.smoothscale(self.rotated_drone, (size, size))
 
     def __rotate_drone(self, angle: int) -> None:
-        angle += 180
         if angle == self.drone_angle:
             return
         self.drone_angle = angle
@@ -192,16 +194,18 @@ class Drone:
 
 
 class Py_Game:
-
     def __init__(self):
         self.width = 1000
         self.height = 800
+        # grad unit
+        self.GU = 100
+        # scall unit
         self.SU = 1.0
         self.canvas_x = 0
         self.canvas_y = 0
         self.running = True
         pygame.init()
-        self.screen = pygame.display.set_mode((self.width, self.height), pygame.SCALED | pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Fly_in")
         self.drone_image = pygame.image.load("images/drone.png"
                                              ).convert_alpha()
@@ -209,9 +213,8 @@ class Py_Game:
                                               ).convert_alpha()
         self.hubs: list[Hub] = []
         self.connections: list[tuple] = []
-        self.start_hub = None
-        self.end_hub = None
         self.ground = self.__scall_image(self.ground_image)
+        self.font = pygame.font.SysFont(None, int(self.SU * 30))
 
         self.drones = []
 
@@ -221,10 +224,25 @@ class Py_Game:
 
     def set_drone_network(self, network: DroneNetwork) -> None:
         for hub in network.hubs:
-            self.hubs.append(Hub(hub["x"], hub["y"], self.___get_color(hub["color"])))
+            self.hubs.append(Hub(
+                hub["name"],
+                hub["x"] * self.GU,
+                hub["y"] * self.GU,
+                self.___get_color(hub["color"]),
+                hub["zone"]))
 
-        self.hubs.append(Hub(network.start["x"], network.start["y"], self.___get_color(network.start["color"])))
-        self.hubs.append(Hub(network.end["x"], network.end["y"], self.___get_color(network.end["color"])))
+        self.hubs.append(Hub(
+            network.start["name"],
+            network.start["x"] * self.GU,
+            network.start["y"] * self.GU,
+            self.___get_color(network.start["color"]),
+            hub["zone"]))
+        self.hubs.append(Hub(
+            network.end["name"],
+            network.end["x"] * self.GU,
+            network.end["y"] * self.GU,
+            self.___get_color(network.end["color"]),
+            hub["zone"]))
 
         for connection in network.connections:
             if connection[0] == network.start["name"]:
@@ -232,35 +250,39 @@ class Py_Game:
             if connection[0] == network.end["name"]:
                 x1, y1 = network.end["x"], network.end["y"]
             else:
-                x1, y1 = next(([h["x"], h["y"]] for h in network.hubs if h["name"] == connection[0]), [0, 0])
+                x1, y1 = next(([h["x"], h["y"]]
+                               for h in network.hubs
+                               if h["name"] == connection[0]), [0, 0])
 
             if connection[1] == network.start["name"]:
                 x2, y2 = network.start["x"], network.start["y"]
             if connection[1] == network.end["name"]:
                 x2, y2 = network.end["x"], network.end["y"]
             else:
-                x2, y2 = next(([h["x"], h["y"]] for h in network.hubs if h["name"] == connection[1]), [0, 0])
-            self.connections.append((x1, y1, x2, y2))
+                x2, y2 = next(([h["x"], h["y"]]
+                               for h in network.hubs
+                               if h["name"] == connection[1]), [0, 0])
 
+            self.connections.append((x1 * self.GU, y1 * self.GU,
+                                     x2 * self.GU, y2 * self.GU))
 
-
-
+        x = network.start["x"] * self.GU
+        y = network.start["y"] * self.GU
         for _ in range(network.nb_drones):
-            self.drones.append(Drone(self.drone_image))
+            self.drones.append(Drone(self.drone_image, x, y))
 
-        path = []
-        for hub in self.hubs:
-            path.append((hub.x*100+20, hub.y*100+20, "normal"))
-
-        for drone in self.drones:
-            random.shuffle(path)
-            drone.set_path(path)
-
-        self.drones[0].path[1] = "wait"
-
-
-
-
+    def set_drones_path(self, paths: list[str]) -> None:
+        for i, path in enumerate(paths):
+            drone_path = []
+            for name in path:
+                if name == "wait":
+                    drone_path.append("wait")
+                else:
+                    for hub in self.hubs:
+                        if hub.name == name:
+                            drone_path.append((hub.x, hub.y, hub.zone))
+                            break
+            self.drones[i].set_path(drone_path.copy())
 
     def run(self) -> None:
         clock = pygame.time.Clock()
@@ -270,7 +292,6 @@ class Py_Game:
             self.__check_events()
             self.__check_mouse_button()
 
-            # self.screen.fill(BLACK)
             for x in range(int(self.width/(200 * self.SU)) + 2):
                 for y in range(int(self.height/(200 * self.SU)) + 2):
                     self.screen.blit(self.ground, (
@@ -282,18 +303,24 @@ class Py_Game:
                     self.screen,
                     (255, 255, 255),
                     (
-                        ((connection[0]*100 + 45)*self.SU)+self.canvas_x,
-                        ((connection[1]*100 + 45)*self.SU)+self.canvas_y
+                        ((connection[0] + 45)*self.SU)+self.canvas_x,
+                        ((connection[1] + 45)*self.SU)+self.canvas_y
                     ), (
-                        ((connection[2]*100 + 45)*self.SU)+self.canvas_x,
-                        ((connection[3]*100 + 45)*self.SU)+self.canvas_y
+                        ((connection[2] + 45)*self.SU)+self.canvas_x,
+                        ((connection[3] + 45)*self.SU)+self.canvas_y
                     )
                 )
 
             for hub in self.hubs:
                 self.screen.blit(hub.hub_surface, (
-                    self.canvas_x + (hub.x*100*self.SU),
-                    self.canvas_y + (hub.y*100*self.SU)
+                    self.canvas_x + (hub.x*self.SU),
+                    self.canvas_y + (hub.y*self.SU)
+                ))
+                # -------- DRAW TEXT --------
+                t_surface = self.font.render(hub.name, True, (255, 255, 255))
+                self.screen.blit(t_surface, (
+                    self.canvas_x + ((hub.x) * self.SU),
+                    self.canvas_y + ((hub.y + self.GU) * self.SU)
                 ))
 
             for drone in self.drones:
@@ -338,6 +365,7 @@ class Py_Game:
         self.SU += scall_size
         self.SU = max(0.1, min(self.SU, 4))
         scale_ratio = self.SU / old_scale
+        self.font = pygame.font.SysFont(None, int(self.SU * 30))
         screen_center_x = self.screen.get_width() / 2
         screen_center_y = self.screen.get_height() / 2
         self.canvas_x = screen_center_x - (

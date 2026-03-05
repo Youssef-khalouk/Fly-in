@@ -25,19 +25,17 @@ cost = {
 }
 
 
-
 def greedy_best_first_heap(graph, start, goal):
     heap = []
     heapq.heappush(heap, (cost[start], start, [start]))
     visited = set()
 
     while heap:
-        print("====")
-        for i in heap:
-            print(i)
-        print("======")
+        # print("====")
+        # for i in heap:
+        #     print(i)
+        # print("======")
         h, node, path = heapq.heappop(heap)
-        
 
         if node == goal:
             return path
@@ -46,6 +44,7 @@ def greedy_best_first_heap(graph, start, goal):
             visited.add(node)
             for neighbor in graph[node]:
                 heapq.heappush(heap, (cost[neighbor] + h, neighbor, path + [neighbor]))
+
 
 # Test
 print(greedy_best_first_heap(graph, "hub", "goal"))
