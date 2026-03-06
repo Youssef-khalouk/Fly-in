@@ -15,18 +15,21 @@ a_star = AStarPathfinder(drone_network)
 all_paths = a_star.plan_paths_for_all_drones()
 
 
-print(drone_network.start)
-print(drone_network.end)
-for hub in drone_network.hubs:
-    print(hub)
+# print(drone_network.start)
+# print(drone_network.end)
+# for hub in drone_network.hubs:
+#     print(hub)
 
-print("\nconnections:")
-for connection in drone_network.connections:
-    print(connection)
+# print("\nconnections:")
+# for connection in drone_network.connections:
+#     print(connection)
 
-# print("\npaths:")
-# for path in all_paths:
-#     print(path)
+print("\npaths:")
+for path in all_paths:
+    # print(path)
+    for i in path:
+        if i == "connection":
+            print(path)
 
 
 my_game = Py_Game()

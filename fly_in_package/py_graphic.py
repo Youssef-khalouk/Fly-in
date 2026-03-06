@@ -273,10 +273,16 @@ class Py_Game:
 
     def set_drones_path(self, paths: list[str]) -> None:
         for i, path in enumerate(paths):
+            if not path:
+                continue
             drone_path = []
             for name in path:
                 if name == "wait":
                     drone_path.append("wait")
+                # connection is not passing but the code is detecting
+                # where is the restrected hubs
+                # if name == "connection":
+                #     drone_path.append("connection")
                 else:
                     for hub in self.hubs:
                         if hub.name == name:
@@ -297,7 +303,6 @@ class Py_Game:
                     self.screen.blit(self.ground, (
                         (self.canvas_x % (200*self.SU)) + ((x-1)*200*self.SU),
                         (self.canvas_y % (200*self.SU)) + ((y-1)*200*self.SU)))
-
             for connection in self.connections:
                 pygame.draw.aaline(
                     self.screen,
@@ -310,7 +315,6 @@ class Py_Game:
                         ((connection[3] + 45)*self.SU)+self.canvas_y
                     )
                 )
-
             for hub in self.hubs:
                 self.screen.blit(hub.hub_surface, (
                     self.canvas_x + (hub.x*self.SU),
@@ -322,7 +326,6 @@ class Py_Game:
                     self.canvas_x + ((hub.x) * self.SU),
                     self.canvas_y + ((hub.y + self.GU) * self.SU)
                 ))
-
             for drone in self.drones:
                 drone.update()
                 self.screen.blit(drone.get_drone(), (
