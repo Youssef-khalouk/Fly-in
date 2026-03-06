@@ -24,12 +24,12 @@ all_paths = a_star.plan_paths_for_all_drones()
 # for connection in drone_network.connections:
 #     print(connection)
 
-print("\npaths:")
-for path in all_paths:
-    # print(path)
-    for i in path:
-        if i == "connection":
-            print(path)
+# print("\npaths:")
+# for path in all_paths:
+#     # print(path)
+#     for i in path:
+#         if i == "connection":
+#             print(path)
 
 
 my_game = Py_Game()
