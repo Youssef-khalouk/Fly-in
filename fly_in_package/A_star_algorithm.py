@@ -7,9 +7,13 @@ from .file_parser import DroneNetwork
 class AStarPathfinder:
     def __init__(self, drone_network: DroneNetwork):
         self.network = drone_network
+
         self.hubs = {h["name"]: h for h in drone_network.hubs}
         self.start = drone_network.start
         self.end = drone_network.end
+        # self.hubs[self.start["name"]] = self.start
+        self.hubs[self.end["name"]] = self.end
+
         self.all_paths = []
 
         self.graph = {}
@@ -43,7 +47,7 @@ class AStarPathfinder:
         bonus = 0
         the_hub = self.hubs.get(next_hub)
         if not the_hub:
-            return 1, 0
+            return 2, 0
 
         zone = the_hub.get("zone")
         if zone == "blocked":
@@ -89,17 +93,21 @@ class AStarPathfinder:
                 for next_h, data in self.graph.get(hub, []):
                     if next_h == last_hub:
                         continue
-                    cost, bonus = self.__movement_cost(hub, next_h, len(path), data)
+                    cost, bonus = self.__movement_cost(
+                                        hub, next_h, len(path), data)
                     if cost == -1:
                         continue
                     elif cost == -2:
-                        heapq.heappush(heap, (h+1, bonus, hub, path+["wait"]))
-                        last_hub = hub
+                        if next_h == self.end["name"]:
+                            return []
+                        heapq.heappush(heap, (h+1, 1, hub, path+["wait"]))
                     elif cost == -3:
-                        heapq.heappush(heap, (h+2, bonus, next_h, path+["connection", next_h]))
+                        heapq.heappush(heap, (
+                            h+2, 0, next_h, path+["connection", next_h]))
                         last_hub = hub
                     elif cost >= 0:
-                        heapq.heappush(heap, (h+cost, bonus, next_h, path+[next_h]))
+                        heapq.heappush(heap, (
+                            h+cost, bonus, next_h, path+[next_h]))
                         last_hub = hub
 
         return None
@@ -111,3 +119,24 @@ class AStarPathfinder:
             if path:
                 self.all_paths.append(path)
         return self.all_paths
+
+    def print_moves(self) -> None:
+        if not self.all_paths:
+            return
+        index = 0
+        all_done = False
+        turns = -1
+        while not all_done:
+            turns += 1
+            all_done = True
+            drone = 0
+            index += 1
+            for path in self.all_paths:
+                drone += 1
+                if len(path) > index:
+                    if path[index] != "wait":
+                        print(f"D{drone}-{path[index]} ", end="")
+                    all_done = False
+            print("")
+
+        print("total turns:", turns)

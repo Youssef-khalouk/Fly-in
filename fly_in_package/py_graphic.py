@@ -143,8 +143,10 @@ class Drone:
         # smooth speed
         if zone == "restricted":
             current_speed = (self.speed/2) * 4 * progress * (1 - progress)
+            current_speed = distance / 20
         else:
             current_speed = self.speed * 4 * progress * (1 - progress)
+            current_speed = distance / 10
         # minimum speed so it doesn't freeze at start
         current_speed = max(current_speed, 0.5)
 
@@ -212,7 +214,8 @@ class Py_Game:
         self.running = True
         pygame.init()
         if sys.platform == "win32":
-            self.screen = pygame.display.set_mode((self.width, self.height), pygame.SCALED)
+            self.screen = pygame.display.set_mode(
+                (self.width, self.height), pygame.SCALED)
         else:
             self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Fly_in")
