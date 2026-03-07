@@ -4,7 +4,8 @@ from fly_in_package import Parser, Py_Game, AStarPathfinder
 if __name__ == "__main__":
     parser = Parser()
     # parser.set_file("network_of_drones.txt")
-    parser.set_file("maps/challenger/01_the_impossible_dream.txt")
+    # parser.set_file("maps/challenger/01_the_impossible_dream.txt")
+    parser.set_file("maps/hard/03_ultimate_challenge.txt")
 
     if not parser.parse():
         print("Error:", parser.error)

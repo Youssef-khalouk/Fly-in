@@ -24,6 +24,19 @@ class AStarPathfinder:
                 self.graph[b] = []
             self.graph[a].append((b, data))
             self.graph[b].append((a, data))
+        
+        self.hub_occupancy = {}
+        self.link_occupancy = {}
+    
+    def __register_path(self, path):
+        for pos in range(len(path)):
+            hub = self.__hub_at_time(path, len(path))
+            if hub:
+                self.hub_occupancy[(hub, pos)] = self.hub_occupancy.get((hub, pos), 0) + 1
+            link = self.__link_at_time(path, pos)
+            if link:
+                self.link_occupancy[(link, pos)] = self.link_occupancy.get((hub, pos), 0) + 1
+
 
     def __hub_at_time(self, path: list[str], t: int) -> str:
         if not path:
@@ -58,57 +71,63 @@ class AStarPathfinder:
             bonus += 1
 
         # check the max drones in the hub
-        count = 0
-        for path in self.all_paths:
-            other_hub = self.__hub_at_time(path, pos)
-            if other_hub == next_hub:
-                count += 1
-        if count >= the_hub["max_drones"]:
+        # count = 0
+        if self.hub_occupancy.get((next_hub, pos), 0) >= the_hub["max_drones"]:
             return -2, 0
+        # for path in self.all_paths:
+        #     other_hub = self.__hub_at_time(path, pos)
+        #     if other_hub == next_hub:
+        #         count += 1
+        # if count >= the_hub["max_drones"]:
+        #     return -2, 0
 
         # check the max_link_capacity
-        count = 0
-        curent_link = f"{curent_hub}-{next_hub}"
-        for path in self.all_paths:
-            if curent_link == self.__link_at_time(path, pos):
-                count += 1
-        if count >= data["max_link_capacity"]:
+        # count = 0
+        # curent_link = f"{curent_hub}-{next_hub}"
+        # for path in self.all_paths:
+        #     if curent_link == self.__link_at_time(path, pos):
+        #         count += 1
+        # if count >= data["max_link_capacity"]:
+        #     return -2, 0
+        link = f"{curent_hub}-{next_hub}"
+        if self.link_occupancy.get((link, pos), 0) >= data["max_link_capacity"]:
             return -2, 0
 
         return 1, bonus
 
     def find_path(self) -> list[str] | None:
         heap = []
-        heapq.heappush(heap, (0, 0, self.start["name"], [self.start["name"]]))
-        visited = set()
-        last_hub = ""
+        heapq.heappush(heap, (0, 0, self.start["name"], [self.start["name"]], None))
+        vesited = set()
         while heap:
-            h, _, hub, path = heapq.heappop(heap)
+            h, _, hub, path , parent= heapq.heappop(heap)
 
             if hub == self.end["name"]:
+                self.__register_path(path)
                 return path
-            state = (hub, len(path))
-            if state not in visited:
-                visited.add((hub, len(path)))
-                for next_h, data in self.graph.get(hub, []):
-                    if next_h == last_hub:
-                        continue
-                    cost, bonus = self.__movement_cost(
-                                        hub, next_h, len(path), data)
-                    if cost == -1:
-                        continue
-                    elif cost == -2:
-                        if next_h == self.end["name"]:
-                            return []
-                        heapq.heappush(heap, (h+1, 1, hub, path+["wait"]))
-                    elif cost == -3:
-                        heapq.heappush(heap, (
-                            h+2, 0, next_h, path+["connection", next_h]))
-                        last_hub = hub
-                    elif cost >= 0:
-                        heapq.heappush(heap, (
-                            h+cost, bonus, next_h, path+[next_h]))
-                        last_hub = hub
+
+            state = (hub, len(path), parent)
+            if state in vesited:
+                continue
+
+            vesited.add(state)
+            for next_h, data in self.graph.get(hub, []):
+                if next_h == parent:
+                    continue
+                cost, bonus = self.__movement_cost(
+                                    hub, next_h, len(path), data)
+                if cost == -1:
+                    continue
+                elif cost == -2:
+                    if next_h == self.end["name"]:
+                        return []
+                    heapq.heappush(heap, (h+1, 1, hub, path+["wait"], parent))
+                elif cost == -3:
+                    heapq.heappush(heap, (
+                        h+2, 0, next_h, path+["connection", next_h], hub))
+                elif cost >= 0:
+                    heapq.heappush(heap, (
+                        h+cost, bonus, next_h, path+[next_h], hub))
 
         return None
 

@@ -139,7 +139,7 @@ class Parser:
         if not self.__parse_zone_metadata(" ".join(lwords[4:]), line, dc):
             return False
         if dc["max_drones"] < self.nb_drones:
-            self.error = f"max_drones of the {dc["name"]} should "
+            self.error = "max_drones of the " + dc["name"] + " should "
             self.error += "be more or equal to the number of drones"
             return False
         return True
