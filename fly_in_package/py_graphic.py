@@ -1,5 +1,11 @@
-from .file_parser import DroneNetwork
+import sys
+
+if sys.platform == "win32":
+    import ctypes
+    ctypes.windll.user32.SetProcessDPIAware()
+
 import pygame
+from .file_parser import DroneNetwork
 from typing import Any
 import math
 import random
@@ -205,7 +211,10 @@ class Py_Game:
         self.canvas_y = 0
         self.running = True
         pygame.init()
-        self.screen = pygame.display.set_mode((self.width, self.height))
+        if sys.platform == "win32":
+            self.screen = pygame.display.set_mode((self.width, self.height), pygame.SCALED)
+        else:
+            self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Fly_in")
         self.drone_image = pygame.image.load("images/drone.png"
                                              ).convert_alpha()

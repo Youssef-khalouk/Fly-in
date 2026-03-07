@@ -1,5 +1,4 @@
 import heapq
-# import math
 from .file_parser import DroneNetwork
 
 # heuristic is the distance to the goal
@@ -41,7 +40,6 @@ class AStarPathfinder:
 
     def __movement_cost(self, curent_hub: str, next_hub: str,
                         pos: int, data: dict) -> tuple[int, int]:
-        h = 1
         bonus = 0
         the_hub = self.hubs.get(next_hub)
         if not the_hub:
@@ -73,7 +71,7 @@ class AStarPathfinder:
         if count >= data["max_link_capacity"]:
             return -2, 0
 
-        return h, bonus
+        return 1, bonus
 
     def find_path(self) -> list[str] | None:
         heap = []
@@ -88,7 +86,7 @@ class AStarPathfinder:
             state = (hub, len(path))
             if state not in visited:
                 visited.add((hub, len(path)))
-                for next_h, data in self.graph.get(hub):
+                for next_h, data in self.graph.get(hub, []):
                     if next_h == last_hub:
                         continue
                     cost, bonus = self.__movement_cost(hub, next_h, len(path), data)
@@ -96,11 +94,13 @@ class AStarPathfinder:
                         continue
                     elif cost == -2:
                         heapq.heappush(heap, (h+1, bonus, hub, path+["wait"]))
+                        last_hub = hub
                     elif cost == -3:
                         heapq.heappush(heap, (h+2, bonus, next_h, path+["connection", next_h]))
+                        last_hub = hub
                     elif cost >= 0:
                         heapq.heappush(heap, (h+cost, bonus, next_h, path+[next_h]))
-                last_hub = hub
+                        last_hub = hub
 
         return None
 
