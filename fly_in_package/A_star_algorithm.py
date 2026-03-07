@@ -11,7 +11,7 @@ class AStarPathfinder:
         self.hubs = {h["name"]: h for h in drone_network.hubs}
         self.start = drone_network.start
         self.end = drone_network.end
-        # self.hubs[self.start["name"]] = self.start
+        self.hubs[self.start["name"]] = self.start
         self.hubs[self.end["name"]] = self.end
 
         self.all_paths = []
@@ -30,24 +30,26 @@ class AStarPathfinder:
     
     def __register_path(self, path):
         for pos in range(len(path)):
-            hub = self.__hub_at_time(path, len(path))
+            hub = self.__hub_at_time(path, pos)
             if hub:
                 self.hub_occupancy[(hub, pos)] = self.hub_occupancy.get((hub, pos), 0) + 1
             link = self.__link_at_time(path, pos)
             if link:
-                self.link_occupancy[(link, pos)] = self.link_occupancy.get((hub, pos), 0) + 1
+                self.link_occupancy[(link, pos)] = self.link_occupancy.get((link, pos), 0) + 1
 
 
     def __hub_at_time(self, path: list[str], t: int) -> str:
         if not path:
             return ""
         t = min(t, len(path) - 1)
-        while t > 0 and path[t] in ("wait", "connection"):
+        if path[t] == "connection":
+            return path[t+1]
+        while t > 0 and path[t] == "wait":
             t -= 1
         return path[t]
 
     def __link_at_time(self, path: list[str], pos: int) -> str:
-        if len(path) <= pos:
+        if len(path) <= pos or pos < 0:
             return ""
         next_hub = path[pos]
         pos -= 1
@@ -62,36 +64,25 @@ class AStarPathfinder:
         if not the_hub:
             return 2, 0
 
-        zone = the_hub.get("zone")
-        if zone == "blocked":
-            return -1, 0
-        if zone == "restricted":
-            return -3, 0
-        if zone == "priority":
-            bonus += 1
 
         # check the max drones in the hub
-        # count = 0
         if self.hub_occupancy.get((next_hub, pos), 0) >= the_hub["max_drones"]:
-            return -2, 0
-        # for path in self.all_paths:
-        #     other_hub = self.__hub_at_time(path, pos)
-        #     if other_hub == next_hub:
-        #         count += 1
-        # if count >= the_hub["max_drones"]:
-        #     return -2, 0
-
-        # check the max_link_capacity
-        # count = 0
-        # curent_link = f"{curent_hub}-{next_hub}"
-        # for path in self.all_paths:
-        #     if curent_link == self.__link_at_time(path, pos):
-        #         count += 1
-        # if count >= data["max_link_capacity"]:
-        #     return -2, 0
+                return -2, 0
+        # ckeck the max link capacity
         link = f"{curent_hub}-{next_hub}"
         if self.link_occupancy.get((link, pos), 0) >= data["max_link_capacity"]:
             return -2, 0
+
+        zone = the_hub.get("zone")
+
+        if zone == "restricted":
+            return -3, 0
+            
+        if zone == "blocked":
+            return -1, 0
+
+        if zone == "priority":
+            bonus += 1
 
         return 1, bonus
 

@@ -143,10 +143,10 @@ class Drone:
         # smooth speed
         if zone == "restricted":
             current_speed = (self.speed/2) * 4 * progress * (1 - progress)
-            current_speed = distance / 20
+            # current_speed = distance / 20
         else:
             current_speed = self.speed * 4 * progress * (1 - progress)
-            current_speed = distance / 10
+            # current_speed = distance / 10
         # minimum speed so it doesn't freeze at start
         current_speed = max(current_speed, 0.5)
 
@@ -203,8 +203,8 @@ class Drone:
 
 class Py_Game:
     def __init__(self):
-        self.width = 1000
-        self.height = 800
+        self.width = 1400
+        self.height = 1000
         # grad unit
         self.GU = 100
         # scall unit
@@ -229,6 +229,7 @@ class Py_Game:
         self.font = pygame.font.SysFont(None, int(self.SU * 30))
 
         self.drones = []
+        self.show_hubs_name = True
 
     def __scall_image(self, image, size: int = 200) -> pygame.surface:
         size = int(size * self.SU) + 1
@@ -259,7 +260,7 @@ class Py_Game:
         for connection in network.connections:
             if connection[0] == network.start["name"]:
                 x1, y1 = network.start["x"], network.start["y"]
-            if connection[0] == network.end["name"]:
+            elif connection[0] == network.end["name"]:
                 x1, y1 = network.end["x"], network.end["y"]
             else:
                 x1, y1 = next(([h["x"], h["y"]]
@@ -268,7 +269,7 @@ class Py_Game:
 
             if connection[1] == network.start["name"]:
                 x2, y2 = network.start["x"], network.start["y"]
-            if connection[1] == network.end["name"]:
+            elif connection[1] == network.end["name"]:
                 x2, y2 = network.end["x"], network.end["y"]
             else:
                 x2, y2 = next(([h["x"], h["y"]]
@@ -291,10 +292,6 @@ class Py_Game:
             for name in path:
                 if name == "wait":
                     drone_path.append("wait")
-                # connection is not passing but the code is detecting
-                # where is the restrected hubs
-                # if name == "connection":
-                #     drone_path.append("connection")
                 else:
                     for hub in self.hubs:
                         if hub.name == name:
@@ -332,12 +329,13 @@ class Py_Game:
                     self.canvas_x + (hub.x*self.SU),
                     self.canvas_y + (hub.y*self.SU)
                 ))
-                # -------- DRAW TEXT --------
-                t_surface = self.font.render(hub.name, True, (255, 255, 255))
-                self.screen.blit(t_surface, (
-                    self.canvas_x + ((hub.x) * self.SU),
-                    self.canvas_y + ((hub.y + self.GU) * self.SU)
-                ))
+                if self.show_hubs_name:
+                    # -------- DRAW TEXT --------
+                    t_surface = self.font.render(hub.name, True, (255, 255, 255))
+                    self.screen.blit(t_surface, (
+                        self.canvas_x + ((hub.x) * self.SU),
+                        self.canvas_y + ((hub.y + self.GU) * self.SU)
+                    ))
             for drone in self.drones:
                 drone.update()
                 self.screen.blit(drone.get_drone(), (
@@ -374,6 +372,10 @@ class Py_Game:
 
             if event.type == pygame.MOUSEWHEEL:
                 self.__scall_elements(event.y * 0.4)
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_h:
+                    self.show_hubs_name = not self.show_hubs_name
 
     def __scall_elements(self, scall_size: int) -> None:
         old_scale = self.SU
