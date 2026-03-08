@@ -121,14 +121,7 @@ class Drone:
             self.mv_x = self.x
             self.mv_y = self.y
             self.old_num = self.which_hub
-            # calculate the direction angle between two points
-            angle_radians = math.atan2(target_x-self.mv_x, target_y-self.mv_y)
-            # changeing the radian to defree, "degrees = radian * (100 / π)"
-            angle_degrees = math.degrees(angle_radians)
-            self.__rotate_drone(angle_degrees)
-
-            self.segment_start_x = self.mv_x
-            self.segment_start_y = self.mv_y
+            # calculatebonust_start_y = self.mv_y
             dx = target_x - self.mv_x
             dy = target_y - self.mv_y
             self.segment_total_distance = math.hypot(dx, dy)
