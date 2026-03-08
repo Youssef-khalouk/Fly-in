@@ -24,19 +24,31 @@ class AStarPathfinder:
                 self.graph[b] = []
             self.graph[a].append((b, data))
             self.graph[b].append((a, data))
-        
-        self.hub_occupancy = {}
-        self.link_occupancy = {}
-    
+
+        self.hub_reservations = {}
+        self.link_reservations = {}
+
     def __register_path(self, path):
         for pos in range(len(path)):
             hub = self.__hub_at_time(path, pos)
             if hub:
-                self.hub_occupancy[(hub, pos)] = self.hub_occupancy.get((hub, pos), 0) + 1
+                hub_at_time = (hub, pos)
+                reserations = self.hub_reservations.get(hub_at_time, 0)
+                self.hub_reservations[hub_at_time] = reserations + 1
             link = self.__link_at_time(path, pos)
             if link:
-                self.link_occupancy[(link, pos)] = self.link_occupancy.get((link, pos), 0) + 1
+                lint_at_time = (link, pos)
+                reserations = self.link_reservations.get(lint_at_time, 0)
+                self.link_reservations[lint_at_time] = reserations + 1
 
+    def __heuristic(self, hub: str) -> int:
+        hx = self.hubs[hub]["x"]
+        hy = self.hubs[hub]["y"]
+        gx = self.end["x"]
+        gy = self.end["y"]
+
+        # manhattan distance
+        return abs(hx - gx) + abs(hy - gy)
 
     def __hub_at_time(self, path: list[str], t: int) -> str:
         if not path:
@@ -64,20 +76,21 @@ class AStarPathfinder:
         if not the_hub:
             return 2, 0
 
-
         # check the max drones in the hub
-        if self.hub_occupancy.get((next_hub, pos), 0) >= the_hub["max_drones"]:
-                return -2, 0
+        drones_in_hub = self.hub_reservations.get((next_hub, pos), 0)
+        if drones_in_hub >= the_hub["max_drones"]:
+            return -2, 0
         # ckeck the max link capacity
         link = f"{curent_hub}-{next_hub}"
-        if self.link_occupancy.get((link, pos), 0) >= data["max_link_capacity"]:
+        drones_in_link = self.link_reservations.get((link, pos), 0)
+        if drones_in_link >= data["max_link_capacity"]:
             return -2, 0
 
         zone = the_hub.get("zone")
 
         if zone == "restricted":
             return -3, 0
-            
+
         if zone == "blocked":
             return -1, 0
 
@@ -88,10 +101,11 @@ class AStarPathfinder:
 
     def find_path(self) -> list[str] | None:
         heap = []
-        heapq.heappush(heap, (0, 0, self.start["name"], [self.start["name"]], None))
+        name = self.start["name"]
+        heapq.heappush(heap, (0, 0, 0, name, [name], None))
         vesited = set()
         while heap:
-            h, _, hub, path , parent= heapq.heappop(heap)
+            g, _, _, hub, path, parent = heapq.heappop(heap)
 
             if hub == self.end["name"]:
                 self.__register_path(path)
@@ -107,18 +121,22 @@ class AStarPathfinder:
                     continue
                 cost, bonus = self.__movement_cost(
                                     hub, next_h, len(path), data)
+                heur = self.__heuristic(next_h)
+                node = ()
                 if cost == -1:
                     continue
                 elif cost == -2:
                     if next_h == self.end["name"]:
                         return []
-                    heapq.heappush(heap, (h+1, 1, hub, path+["wait"], parent))
+                    node = (g+1, -1, heur, hub, path+["wait"], parent)
                 elif cost == -3:
-                    heapq.heappush(heap, (
-                        h+2, 0, next_h, path+["connection", next_h], hub))
+                    array = ["connection", next_h]
+                    node = (g+2, 0, heur, next_h, path + array, hub)
                 elif cost >= 0:
-                    heapq.heappush(heap, (
-                        h+cost, bonus, next_h, path+[next_h], hub))
+                    node = (g+cost, -bonus, heur, next_h, path+[next_h], hub)
+                else:
+                    continue
+                heapq.heappush(heap, node)
 
         return None
 

@@ -67,6 +67,8 @@ class Hub:
 
 
 class Drone:
+    cache_scalled_drones = {}
+
     def __init__(self, drone_image, x: int = 0, y: int = 0):
         # deferent place for every drone in the hub
         self.place = random.randint(10, 40)
@@ -74,6 +76,7 @@ class Drone:
         self.y = y + self.place
         self.zone = "normal"
         self.drone_image = drone_image
+        self.drone_size = 0
         self.SU = 1
         self.drone_angle = 0
         self.rotated_drone = self.drone_image
@@ -118,7 +121,9 @@ class Drone:
             self.mv_x = self.x
             self.mv_y = self.y
             self.old_num = self.which_hub
+            # calculate the direction angle between two points
             angle_radians = math.atan2(target_x-self.mv_x, target_y-self.mv_y)
+            # changeing the radian to defree, "degrees = radian * (100 / π)"
             angle_degrees = math.degrees(angle_radians)
             self.__rotate_drone(angle_degrees)
 
@@ -126,18 +131,18 @@ class Drone:
             self.segment_start_y = self.mv_y
             dx = target_x - self.mv_x
             dy = target_y - self.mv_y
-            self.segment_total_distance = math.sqrt(dx*dx + dy*dy)
+            self.segment_total_distance = math.hypot(dx, dy)
 
         dx = target_x - self.mv_x
         dy = target_y - self.mv_y
-
-        distance = math.sqrt(dx*dx + dy*dy)
+        # distance = math.sqrt(dx*dx + dy*dy)
+        # hypot the same as sqrt above but slitly faster
+        distance = math.hypot(dx, dy)
 
         # update progress
         traveled = self.segment_total_distance - distance
-        if self.segment_total_distance == 0:
-            progress = 0
-        else:
+        progress = 0
+        if self.segment_total_distance != 0:
             progress = traveled / self.segment_total_distance
         progress = max(0, min(1, progress))  # clamp 0..1
         # smooth speed
@@ -151,7 +156,7 @@ class Drone:
         current_speed = max(current_speed, 0.5)
 
         if not wait:
-            scale = 50 + 20 * math.sin(math.pi * progress)
+            scale = 50 + (20 * math.sin(math.pi * progress))
             self.drone = self.__get_drone(scale)
 
         if distance > current_speed:
@@ -176,12 +181,21 @@ class Drone:
         return self.drone
 
     def scall(self, su: float) -> None:
+        Drone.cache_scalled_drones = {}
         self.SU = su
         self.drone = self.__get_drone()
 
     def __get_drone(self, size: int = 50):
         size = int(size * self.SU) + 1
-        return pygame.transform.smoothscale(self.rotated_drone, (size, size))
+
+        key = (self.drone_angle, size)
+
+        if key not in Drone.cache_scalled_drones:
+            scaled = pygame.transform.smoothscale(
+                    self.rotated_drone, (size, size))
+            Drone.cache_scalled_drones[key] = scaled
+
+        return Drone.cache_scalled_drones[key]
 
     def __rotate_drone(self, angle: int) -> None:
         if angle == self.drone_angle:
@@ -197,7 +211,7 @@ class Drone:
             original_width,
             original_height
         )
-        self.rotated_drone = rotated.subsurface(crop_rect).copy()
+        self.rotated_drone = rotated.subsurface(crop_rect)
         self.drone = self.__get_drone()
 
 
@@ -331,7 +345,8 @@ class Py_Game:
                 ))
                 if self.show_hubs_name:
                     # -------- DRAW TEXT --------
-                    t_surface = self.font.render(hub.name, True, (255, 255, 255))
+                    t_surface = self.font.render(
+                        hub.name, True, (255, 255, 255))
                     self.screen.blit(t_surface, (
                         self.canvas_x + ((hub.x) * self.SU),
                         self.canvas_y + ((hub.y + self.GU) * self.SU)
@@ -372,7 +387,7 @@ class Py_Game:
 
             if event.type == pygame.MOUSEWHEEL:
                 self.__scall_elements(event.y * 0.4)
-            
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_h:
                     self.show_hubs_name = not self.show_hubs_name
