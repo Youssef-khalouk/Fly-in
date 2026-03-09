@@ -1,11 +1,12 @@
 
 class DroneNetwork:
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.nb_drones = 0
-        self.hubs = {}
-        self.connections = []
-        self.start = None
-        self.end = None
+        self.hubs: list[dict] = []
+        self.connections: list[tuple] = []
+        self.start: dict = {}
+        self.end: dict = {}
 
 
 class Parser:
@@ -23,7 +24,7 @@ class Parser:
     def parse(self) -> bool:
         if not self.file:
             self.error = "there is no file to open!"
-            return None
+            return False
         try:
             with open(self.file, "r") as file:
                 lines: list[str] = file.readlines()
@@ -81,13 +82,13 @@ class Parser:
                     self.error += "toop of file after nb_drones."
                     return False
             elif line.startswith("end_hub:"):
-                if order != "none":
-                    self.error = "the end_hub should be in the "
-                    self.error += "toop of file after start_hub."
+                if order == "connection":
+                    self.error = "the end_hub should be befor connections"
                     return False
             elif line.startswith("hub:"):
                 if order == "connection":
-                    self.error = f"wrong order for hub line: {line}"
+                    self.error = "hub should be befor connections"
+                    self.error += f" error in line: {line}"
                     return False
                 order = "hub"
                 continue
@@ -239,7 +240,7 @@ class Parser:
     def set_file(self, file: str) -> None:
         self.file = file
 
-    def get_error(self):
+    def get_error(self) -> str:
         return self.error
 
     def get_DroneNetwork(self) -> DroneNetwork:

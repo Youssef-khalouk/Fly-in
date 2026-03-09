@@ -14,7 +14,7 @@ import random
 class Hub:
     def __init__(self, name: str, x: int, y: int, color: tuple, zone: str):
         self.name = name
-        self.SU = 1
+        self.SU: float = 1
         self.size = 90
         self.x = x
         self.y = y
@@ -67,9 +67,14 @@ class Hub:
 
 
 class Drone:
-    cache_scalled_drones = {}
+    cache_scalled_drones: dict[tuple, pygame.Surface] = {}
 
-    def __init__(self, drone_image, x: int = 0, y: int = 0):
+    def __init__(
+                self,
+                drone_image: pygame.Surface,
+                x: int = 0,
+                y: int = 0
+            ) -> None:
         # deferent place for every drone in the hub
         self.place = random.randint(10, 40)
         self.x = x + self.place
@@ -77,13 +82,13 @@ class Drone:
         self.zone = "normal"
         self.drone_image = drone_image
         self.drone_size = 0
-        self.SU = 1
+        self.SU: float = 1
         self.drone_angle = 0
         self.rotated_drone = self.drone_image
         self.drone = self.__get_drone()
         self.__rotate_drone(0)
         self.speed = 4
-        self.path: tuple[tuple[int] | str] | str = []
+        self.path: list = []
         self.which_hub = 0
         self.old_num = -1
 
@@ -101,7 +106,9 @@ class Drone:
                 self.path.append((p[0] + self.place, p[1] + self.place, p[2]))
             else:
                 self.path.append(p)
-        self.x, self.y, h = self.path[0]
+        if isinstance(self.path[0], tuple):
+            self.x = self.path[0][0]
+            self.y = self.path[0][1]
 
     def update(self) -> None:
         if not self.path:
@@ -115,16 +122,26 @@ class Drone:
         while self.path[i] == "wait":
             i += 1
             wait = True
-        target_x, target_y, zone = self.path[i]
+        hub_info: tuple = self.path[i]
+        target_x, target_y, zone = hub_info
 
         if self.which_hub != self.old_num:
             self.mv_x = self.x
             self.mv_y = self.y
             self.old_num = self.which_hub
-            # calculatebonust_start_y = self.mv_y
+
+            # calculate radian between two boints
+            angle_radians = math.atan2(target_x-self.mv_x, target_y-self.mv_y)
+            # changes the radian to degree; degrees = (radians * 180 / π)
+            angle_degrees = int(math.degrees(angle_radians))
+
+            self.__rotate_drone(angle_degrees)
+            self.segment_start_x = self.mv_x
+            self.segment_start_y = self.mv_y
+
             dx = target_x - self.mv_x
             dy = target_y - self.mv_y
-            self.segment_total_distance = math.hypot(dx, dy)
+            self.segment_total_distance = int(math.hypot(dx, dy))
 
         dx = target_x - self.mv_x
         dy = target_y - self.mv_y
@@ -134,7 +151,7 @@ class Drone:
 
         # update progress
         traveled = self.segment_total_distance - distance
-        progress = 0
+        progress: float = 0
         if self.segment_total_distance != 0:
             progress = traveled / self.segment_total_distance
         progress = max(0, min(1, progress))  # clamp 0..1
@@ -150,7 +167,7 @@ class Drone:
 
         if not wait:
             scale = 50 + (20 * math.sin(math.pi * progress))
-            self.drone = self.__get_drone(scale)
+            self.drone = self.__get_drone(int(scale))
 
         if distance > current_speed:
             self.mv_x += (dx / distance) * current_speed
@@ -167,10 +184,10 @@ class Drone:
                 self.y = target_y
                 self.zone = zone
 
-    def get_position(self):
+    def get_position(self) -> tuple:
         return (self.x, self.y)
 
-    def get_drone(self):
+    def get_drone(self) -> pygame.Surface:
         return self.drone
 
     def scall(self, su: float) -> None:
@@ -178,7 +195,7 @@ class Drone:
         self.SU = su
         self.drone = self.__get_drone()
 
-    def __get_drone(self, size: int = 50):
+    def __get_drone(self, size: int = 50) -> pygame.Surface:
         size = int(size * self.SU) + 1
 
         key = (self.drone_angle, size)
@@ -209,7 +226,7 @@ class Drone:
 
 
 class Py_Game:
-    def __init__(self):
+    def __init__(self) -> None:
         self.width = 1400
         self.height = 1000
         # grad unit
@@ -235,10 +252,11 @@ class Py_Game:
         self.ground = self.__scall_image(self.ground_image)
         self.font = pygame.font.SysFont(None, int(self.SU * 30))
 
-        self.drones = []
+        self.drones: list[Drone] = []
         self.show_hubs_name = True
 
-    def __scall_image(self, image, size: int = 200) -> pygame.surface:
+    def __scall_image(
+            self, image: pygame.Surface, size: int = 200) -> pygame.Surface:
         size = int(size * self.SU) + 1
         return pygame.transform.smoothscale(image, (size, size))
 
@@ -291,11 +309,11 @@ class Py_Game:
         for _ in range(network.nb_drones):
             self.drones.append(Drone(self.drone_image, x, y))
 
-    def set_drones_path(self, paths: list[str]) -> None:
+    def set_drones_path(self, paths: list[list[str]]) -> None:
         for i, path in enumerate(paths):
             if not path:
                 continue
-            drone_path = []
+            drone_path: list = []
             for name in path:
                 if name == "wait":
                     drone_path.append("wait")
@@ -385,7 +403,7 @@ class Py_Game:
                 if event.key == pygame.K_h:
                     self.show_hubs_name = not self.show_hubs_name
 
-    def __scall_elements(self, scall_size: int) -> None:
+    def __scall_elements(self, scall_size: float) -> None:
         old_scale = self.SU
         self.SU += scall_size
         self.SU = max(0.1, min(self.SU, 4))
@@ -393,10 +411,12 @@ class Py_Game:
         self.font = pygame.font.SysFont(None, int(self.SU * 30))
         screen_center_x = self.screen.get_width() / 2
         screen_center_y = self.screen.get_height() / 2
-        self.canvas_x = screen_center_x - (
-            (screen_center_x - self.canvas_x) * scale_ratio)
-        self.canvas_y = screen_center_y - (
-            (screen_center_y - self.canvas_y) * scale_ratio)
+        self.canvas_x = int(
+            screen_center_x - ((screen_center_x - self.canvas_x) * scale_ratio)
+            )
+        self.canvas_y = int(
+            screen_center_y - ((screen_center_y - self.canvas_y) * scale_ratio)
+            )
         self.ground = self.__scall_image(self.ground_image)
         for drone in self.drones:
             drone.scall(self.SU)

@@ -2,6 +2,7 @@ import heapq
 from .file_parser import DroneNetwork
 
 # heuristic is the distance to the goal
+# multi-agent pathfinding (MAPF)
 
 
 class AStarPathfinder:
@@ -14,9 +15,9 @@ class AStarPathfinder:
         self.hubs[self.start["name"]] = self.start
         self.hubs[self.end["name"]] = self.end
 
-        self.all_paths = []
+        self.all_paths: list[list[str]] = []
 
-        self.graph = {}
+        self.graph: dict[str, list] = {}
         for a, b, data in drone_network.connections:
             if a not in self.graph:
                 self.graph[a] = []
@@ -25,10 +26,10 @@ class AStarPathfinder:
             self.graph[a].append((b, data))
             self.graph[b].append((a, data))
 
-        self.hub_reservations = {}
-        self.link_reservations = {}
+        self.hub_reservations: dict[tuple, int] = {}
+        self.link_reservations: dict[tuple, int] = {}
 
-    def __register_path(self, path):
+    def __register_path(self, path: list[str]) -> None:
         for pos in range(len(path)):
             hub = self.__hub_at_time(path, pos)
             if hub:
@@ -48,7 +49,7 @@ class AStarPathfinder:
         gy = self.end["y"]
 
         # manhattan distance
-        return abs(hx - gx) + abs(hy - gy)
+        return int(abs(hx - gx) + abs(hy - gy))
 
     def __hub_at_time(self, path: list[str], t: int) -> str:
         if not path:
@@ -95,21 +96,22 @@ class AStarPathfinder:
             return -1, 0
 
         if zone == "priority":
-            bonus += 1
+            bonus += 2
 
         return 1, bonus
 
-    def find_path(self) -> list[str] | None:
-        heap = []
+    def find_path(self) -> list[str]:
+        heap: list[tuple] = []
         name = self.start["name"]
         heapq.heappush(heap, (0, 0, 0, name, [name], None))
         vesited = set()
         while heap:
-            g, _, _, hub, path, parent = heapq.heappop(heap)
+            g, b, h, hub, path, parent = heapq.heappop(heap)
 
             if hub == self.end["name"]:
                 self.__register_path(path)
-                return path
+                p: list[str] = path
+                return p
 
             state = (hub, len(path), parent)
             if state in vesited:
@@ -121,24 +123,24 @@ class AStarPathfinder:
                     continue
                 cost, bonus = self.__movement_cost(
                                     hub, next_h, len(path), data)
-                heur = self.__heuristic(next_h)
-                node = ()
+                heur = self.__heuristic(next_h) + h
+                node: tuple = ()
                 if cost == -1:
                     continue
                 elif cost == -2:
                     if next_h == self.end["name"]:
                         return []
-                    node = (g+1, -1, heur, hub, path+["wait"], parent)
+                    node = (g+1, b, heur, hub, path+["wait"], parent)
                 elif cost == -3:
                     array = ["connection", next_h]
-                    node = (g+2, 0, heur, next_h, path + array, hub)
+                    node = (g+2, b, heur, next_h, path + array, hub)
                 elif cost >= 0:
-                    node = (g+cost, -bonus, heur, next_h, path+[next_h], hub)
+                    node = (g+cost, b-bonus, heur, next_h, path+[next_h], hub)
                 else:
                     continue
                 heapq.heappush(heap, node)
 
-        return None
+        return []
 
     def plan_paths_for_all_drones(self) -> list[list[str]]:
         self.all_paths = []
