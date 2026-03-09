@@ -63,7 +63,7 @@ class Parser:
                     elif line.strip():
                         self.error = f"unknown line '{line}'"
                         return False
-                
+
                 if self.end["zone"] == "blocked":
                     self.error = "the end_hub 'zone' should not be blocked!"
                     return False
