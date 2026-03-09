@@ -1,6 +1,6 @@
-nb_drones: 50
+nb_drones: 200
 
-nb_drones: 50
+nb_drones: 200
 
 # === LAYER 0 ===
 start_hub: start 0 7 [color=green max_drones=1000]
@@ -124,8 +124,250 @@ hub: gauntlet3 34 5 [max_drones=1 color=chocolate]
 hub: gauntlet4 36 6 [max_drones=1 color=chocolate]
 hub: gauntlet5 38 5 [max_drones=1 color=chocolate]
 
+hub: overflow9 10 9 [zone=restricted max_drones=2 color=teal]
+hub: overflow10 10 1 [zone=restricted max_drones=2 color=teal]
+hub: overflow11 11 10 [color=gold]
+hub: overflow12 11 0 [color=gold]
+
+hub: lab7 22 6 [color=blue]
+hub: lab8 23 7 [color=blue]
+hub: lab9 23 3 [color=blue]
+
+hub: lab_dead3 24 9 [color=black]
+hub: lab_dead4 24 1 [color=black]
+
+hub: gauntlet6 40 6 [max_drones=1 color=chocolate]
+hub: gauntlet7 42 5 [max_drones=1 color=chocolate]
+hub: gauntlet8 43 6 [max_drones=1 color=chocolate]
+
+hub: gauntlet_trap1 41 8 [color=black]
+hub: gauntlet_trap2 41 3 [color=black]
+
+hub: shadow1 6 9 [color=dark_violet]
+hub: shadow2 7 10 [color=dark_violet]
+hub: shadow3 8 11 [color=dark_violet]
+
+hub: shadow4 6 1 [color=dark_violet]
+hub: shadow5 7 0 [color=dark_violet]
+hub: shadow6 8 1 [color=dark_violet]
+
+hub: shadow_dead1 9 11 [color=black]
+hub: shadow_dead2 9 0 [color=black]
+
+hub: web1 18 10 [zone=restricted max_drones=1 color=purple]
+hub: web2 19 11 [zone=restricted max_drones=1 color=purple]
+hub: web3 20 10 [zone=restricted max_drones=1 color=purple]
+
+hub: web4 18 0 [zone=restricted max_drones=1 color=purple]
+hub: web5 19 -1 [zone=restricted max_drones=1 color=purple]
+hub: web6 20 0 [zone=restricted max_drones=1 color=purple]
+
+hub: web_dead1 21 11 [color=black]
+hub: web_dead2 21 -1 [color=black]
+
+hub: doom1 44 4 [max_drones=1 color=dark_red]
+hub: doom2 44 7 [max_drones=1 color=dark_red]
+hub: doom3 46 5 [max_drones=1 color=dark_red]
+
+hub: doom_loop1 43 9 [zone=restricted color=gray]
+hub: doom_loop2 45 9 [zone=restricted color=gray]
+hub: doom_loop3 46 8 [zone=restricted color=gray]
+
+hub: doom_dead 47 6 [color=black]
+
+hub: chaos1 29 7 [color=purple]
+hub: chaos2 30 9 [color=purple]
+hub: chaos3 31 8 [color=purple]
+hub: chaos4 32 10 [color=purple]
+hub: chaos5 33 9 [color=purple]
+hub: chaos_dead1 34 11 [color=black]
+
+hub: spiral1 31 3 [zone=restricted color=dark_gray]
+hub: spiral2 32 2 [zone=restricted color=dark_gray]
+hub: spiral3 33 3 [zone=restricted color=dark_gray]
+hub: spiral4 34 2 [zone=restricted color=dark_gray]
+hub: spiral5 35 3 [zone=restricted color=dark_gray]
+hub: spiral_dead 36 2 [color=black]
+
+hub: escape1 35 9 [color=sky_blue]
+hub: escape2 36 10 [color=sky_blue]
+hub: escape3 37 9 [color=sky_blue]
+hub: escape4 38 10 [color=sky_blue]
+hub: escape_dead 39 11 [color=black]
+
+hub: chaos_low1 34 1 [color=orange]
+hub: chaos_low2 35 0 [color=orange]
+hub: chaos_low3 36 1 [color=orange]
+hub: chaos_low4 37 0 [color=orange]
+hub: chaos_low_dead 38 -1 [color=black]
+
+
 
 # === CONNECTIONS ===
+
+connection: lab_dead4-spiral2
+connection: lab_dead4-spiral1
+
+connection: spiral_dead-gauntlet_trap2
+connection: chaos_low_dead-gauntlet5
+
+
+
+connection: chaos1-torture1
+connection: chaos2-torture3
+connection: chaos3-torture4
+connection: chaos4-torture5
+connection: chaos5-gauntlet1
+connection: chaos5-gauntlet2
+
+connection: chaos1-lab3
+connection: chaos2-lab2
+connection: chaos3-lab5
+connection: chaos4-lab1
+
+connection: chaos2-conv3
+connection: chaos3-conv6
+connection: chaos4-conv9
+
+connection: spiral1-chaos_low1
+connection: spiral2-gauntlet1
+connection: spiral3-gauntlet2
+connection: spiral4-torture4
+connection: spiral5-gauntlet3
+
+connection: chaos4-gauntlet5
+connection: escape3-impossible_goal
+connection: spiral5-gauntlet4
+
+connection: escape1-torture4
+connection: escape2-gauntlet2
+connection: escape3-gauntlet4
+connection: escape4-gauntlet5
+
+connection: chaos2-gauntlet1
+connection: chaos3-gauntlet2
+connection: chaos4-gauntlet3
+connection: chaos5-gauntlet4
+
+connection: chaos3-spiral1
+
+connection: spiral1-spiral2
+connection: spiral2-spiral3
+connection: spiral3-spiral4
+connection: spiral4-spiral5
+connection: spiral5-spiral1
+
+connection: torture2-chaos_low1
+
+connection: chaos_low1-chaos_low2
+connection: chaos_low2-chaos_low3
+connection: chaos_low3-chaos_low4
+
+connection: chaos_low4-gauntlet1
+
+connection: chaos_low3-chaos_low_dead
+
+connection: spiral3-spiral_dead
+
+connection: chaos4-escape1
+
+connection: escape1-escape2
+connection: escape2-escape3
+connection: escape3-escape4
+
+connection: escape4-gauntlet3
+connection: escape3-gauntlet2
+
+connection: escape2-escape_dead
+
+connection: chaos1-chaos2
+connection: chaos2-chaos3
+connection: chaos3-chaos4
+connection: chaos4-chaos5
+connection: chaos5-chaos_dead1
+
+connection: torture3-chaos1
+connection: torture4-chaos1
+connection: torture5-chaos2
+
+
+connection: gauntlet7-doom1
+connection: gauntlet8-doom2
+
+connection: doom1-doom3
+connection: doom2-doom3
+
+connection: doom3-impossible_goal
+
+connection: doom1-doom_loop1
+connection: doom_loop1-doom_loop2
+connection: doom_loop2-doom_loop3
+connection: doom_loop3-doom1
+
+connection: doom_loop2-doom_dead
+
+connection: conv3-web1
+connection: web1-web2
+connection: web2-web3
+connection: web3-web_dead1
+
+connection: conv9-web4
+connection: web4-web5
+connection: web5-web6
+connection: web6-web_dead2
+
+connection: web2-lab1
+connection: web5-lab4
+
+connection: maze_c3-shadow1
+connection: maze_loop6-shadow2
+connection: shadow1-shadow2
+connection: shadow2-shadow3
+connection: shadow3-shadow_dead1
+
+connection: maze_b3-shadow4
+connection: shadow4-shadow5
+connection: shadow5-shadow6
+connection: shadow6-shadow_dead2
+
+connection: shadow2-micro_gate2
+connection: shadow5-overflow6
+
+connection: overflow7-overflow9
+connection: overflow8-overflow10
+connection: overflow9-overflow11
+connection: overflow10-overflow12
+
+connection: overflow9-hope2
+connection: overflow10-hope1
+
+connection: overflow11-micro_gate4
+connection: overflow12-micro_gate3
+
+connection: lab2-lab7
+connection: lab7-lab8
+connection: lab7-lab9
+
+connection: lab8-lab_dead3
+connection: lab9-lab_dead4
+
+connection: lab8-final_merge
+connection: lab9-final_merge
+
+connection: conv4-overflow9
+connection: conv7-overflow10
+connection: conv8-lab7
+
+connection: gauntlet5-gauntlet6
+connection: gauntlet6-gauntlet7
+connection: gauntlet7-gauntlet8
+connection: gauntlet8-impossible_goal
+
+connection: gauntlet6-gauntlet_trap1
+connection: gauntlet7-gauntlet_trap2
+
+connection: gauntlet_trap1-torture3
+connection: gauntlet_trap2-torture4
 
 connection: start-gate_hell1 [max_link_capacity=6]
 connection: gate_hell1-gate_hell2 [max_link_capacity=6]
