@@ -12,7 +12,10 @@ import random
 
 
 class Hub:
+    """Represents a visual hub in the simulation."""
+
     def __init__(self, name: str, x: int, y: int, color: tuple, zone: str):
+        """Initialize a hub with position, color, and zone."""
         self.name = name
         self.SU: float = 1
         self.size = 90
@@ -23,10 +26,12 @@ class Hub:
         self.hub_surface = self.__get_hub_surface()
 
     def scall(self, su: float) -> None:
+        """Scale the hub visuals by the given scale unit."""
         self.SU = su
         self.hub_surface = self.__get_hub_surface()
 
     def __get_hub_surface(self, size: int = 90) -> pygame.Surface:
+        """Render and return the hub surface at the current scale."""
         scaled_size = int(size * self.SU)
 
         big_surface = pygame.Surface(
@@ -67,6 +72,8 @@ class Hub:
 
 
 class Drone:
+    """Represents a drone sprite moving along a planned path."""
+
     cache_scalled_drones: dict[tuple, pygame.Surface] = {}
 
     def __init__(
@@ -75,6 +82,7 @@ class Drone:
                 x: int = 0,
                 y: int = 0
             ) -> None:
+        """Initialize a drone with image and starting position."""
         # deferent place for every drone in the hub
         self.place = random.randint(10, 40)
         self.x = x + self.place
@@ -100,6 +108,7 @@ class Drone:
         self.segment_total_distance = 0
 
     def set_path(self, path: list[tuple | str]) -> None:
+        """Set the movement path for the drone."""
         self.path = []
         for p in path:
             if isinstance(p, tuple):
@@ -111,6 +120,7 @@ class Drone:
             self.y = self.path[0][1]
 
     def update(self) -> None:
+        """Update the drone's position along its path each frame."""
         if not self.path:
             return
         if self.which_hub >= len(self.path):
@@ -185,17 +195,21 @@ class Drone:
                 self.zone = zone
 
     def get_position(self) -> tuple:
+        """Return the current drone position."""
         return (self.x, self.y)
 
     def get_drone(self) -> pygame.Surface:
+        """Return the current drone surface to render."""
         return self.drone
 
     def scall(self, su: float) -> None:
+        """Rescale the drone surface based on the scale unit."""
         Drone.cache_scalled_drones = {}
         self.SU = su
         self.drone = self.__get_drone()
 
     def __get_drone(self, size: int = 50) -> pygame.Surface:
+        """Return a cached scaled version of the drone surface."""
         size = int(size * self.SU) + 1
 
         key = (self.drone_angle, size)
@@ -208,6 +222,7 @@ class Drone:
         return Drone.cache_scalled_drones[key]
 
     def __rotate_drone(self, angle: int) -> None:
+        """Rotate the drone image to face the movement direction."""
         if angle == self.drone_angle:
             return
         self.drone_angle = angle
@@ -226,7 +241,10 @@ class Drone:
 
 
 class Py_Game:
+    """Main pygame application for visualizing the drone network."""
+
     def __init__(self) -> None:
+        """Initialize the pygame window and graphical state."""
         self.width = 1400
         self.height = 1000
         # grad unit
@@ -257,10 +275,12 @@ class Py_Game:
 
     def __scall_image(
             self, image: pygame.Surface, size: int = 200) -> pygame.Surface:
+        """Return a scaled version of the given image for current zoom."""
         size = int(size * self.SU) + 1
         return pygame.transform.smoothscale(image, (size, size))
 
     def set_drone_network(self, network: DroneNetwork) -> None:
+        """Load hubs and connections from a DroneNetwork into the renderer."""
         for hub in network.hubs:
             self.hubs.append(Hub(
                 hub["name"],
@@ -310,6 +330,7 @@ class Py_Game:
             self.drones.append(Drone(self.drone_image, x, y))
 
     def set_drones_path(self, paths: list[list[str]]) -> None:
+        """Assign planned paths to each drone for animation."""
         for i, path in enumerate(paths):
             if not path:
                 continue
@@ -325,6 +346,7 @@ class Py_Game:
             self.drones[i].set_path(drone_path.copy())
 
     def run(self) -> None:
+        """Run the main pygame loop to render and animate the simulation."""
         clock = pygame.time.Clock()
 
         while self.running:
@@ -374,6 +396,7 @@ class Py_Game:
         pygame.quit()
 
     def __check_keys(self, keys: Any) -> None:
+        """Handle keyboard input for panning and zooming."""
         if keys[pygame.K_UP]:
             self.canvas_y -= 5
 
@@ -392,6 +415,7 @@ class Py_Game:
             self.__scall_elements(-.03)
 
     def __check_events(self) -> None:
+        """Handle pygame events like quit, mouse wheel, and key presses."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -404,8 +428,8 @@ class Py_Game:
                     self.show_hubs_name = not self.show_hubs_name
 
     def __scall_elements(self, scall_size: float) -> None:
+        """Adjust zoom level and rescale elements accordingly."""
         old_scale = self.SU
-        self.SU += scall_size
         self.SU = max(0.1, min(self.SU, 4))
         scale_ratio = self.SU / old_scale
         self.font = pygame.font.SysFont(None, int(self.SU * 30))
@@ -424,6 +448,7 @@ class Py_Game:
             hub.scall(self.SU)
 
     def __check_mouse_button(self) -> None:
+        """Handle mouse drag to pan the view."""
         mouse_buttons = pygame.mouse.get_pressed()
         if mouse_buttons[0]:
             dx, dy = pygame.mouse.get_rel()
@@ -434,6 +459,7 @@ class Py_Game:
 
     @staticmethod
     def ___get_color(color_name: str) -> tuple:
+        """Return an RGB tuple for a given color name."""
         colors = {
             # Basic
             "white": (255, 255, 255), "black": (0, 0, 0),

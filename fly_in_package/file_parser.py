@@ -1,7 +1,9 @@
 
 class DroneNetwork:
+    """Data holder for a drone network configuration."""
 
     def __init__(self) -> None:
+        """Initialize an empty drone network data structure."""
         self.nb_drones = 0
         self.hubs: list[dict] = []
         self.connections: list[tuple] = []
@@ -10,8 +12,10 @@ class DroneNetwork:
 
 
 class Parser:
+    """Parse a drone network configuration file."""
 
     def __init__(self, file: str | None = None) -> None:
+        """Initialize parser with an optional input file path."""
         self.file = file
         self.nb_drones = 0
         self.start: dict = {}
@@ -22,6 +26,7 @@ class Parser:
         self.__hubs_names: list[str] = []
 
     def parse(self) -> bool:
+        """Parse the configured file into a DroneNetwork structure."""
         if not self.file:
             self.error = "there is no file to open!"
             return False
@@ -65,6 +70,7 @@ class Parser:
         return True
 
     def __validate_content_and_order(self, lines: list[str]) -> bool:
+        """Validate that required sections exist and are in correct order."""
         if not any(line.startswith("nb_drones") for line in lines):
             self.error = "config file should have 'nb_drones' paramter."
             return False
@@ -97,6 +103,7 @@ class Parser:
         return True
 
     def __parse_nb_drones(self, line: str) -> bool:
+        """Parse the nb_drones line and set the drone count."""
         lwords = line.split(":")
         if len(lwords) != 2:
             self.error = "there is an error in number or drones!"
@@ -115,6 +122,7 @@ class Parser:
         return True
 
     def __parse_start_end_hub(self, line: str, hub: str) -> bool:
+        """Parse the start_hub or end_hub line and store hub metadata."""
         lwords = line.split()
         self.__hubs_names.append(lwords[1])
         dc = self.start
@@ -146,6 +154,7 @@ class Parser:
         return True
 
     def __parse_hub(self, line: str) -> bool:
+        """Parse a hub line and add it to the hub list."""
 
         lwords = line.split()
         self.__hubs_names.append(lwords[1])
@@ -171,6 +180,7 @@ class Parser:
         return True
 
     def __parse_connection(self, line: str) -> bool:
+        """Parse a connection line and add it to the connection list."""
         lwords = line.split()
         if len(lwords) < 2:
             self.error = f"no parameters in line -> '{line}'"
@@ -195,6 +205,7 @@ class Parser:
         return True
 
     def __parse_zone_metadata(self, data: str, line: str, dc: dict) -> bool:
+        """Parse optional metadata tags within square brackets."""
         start = data.find("[")
         end = data.find("]")
         if start != -1 and end != -1 and end > start:
@@ -238,12 +249,15 @@ class Parser:
         return True
 
     def set_file(self, file: str) -> None:
+        """Set or update the parser input file path."""
         self.file = file
 
     def get_error(self) -> str:
+        """Return the last parse error message."""
         return self.error
 
     def get_DroneNetwork(self) -> DroneNetwork:
+        """Build and return a DroneNetwork object from parsed data."""
         drone_network = DroneNetwork()
         drone_network.nb_drones = self.nb_drones
         drone_network.hubs = self.hubs

@@ -9,9 +9,6 @@ if __name__ == "__main__":
 
     parser = Parser()
     parser.set_file(sys.argv[1])
-    # parser.set_file("maps/network_of_drones.txt")
-    # parser.set_file("maps/impossible_map.txt")
-    # parser.set_file("maps/01_the_impossible_dream.txt")
 
     if not parser.parse():
         print("Error:", parser.error)

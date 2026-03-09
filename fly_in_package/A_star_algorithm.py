@@ -6,7 +6,10 @@ from .file_parser import DroneNetwork
 
 
 class AStarPathfinder:
+    """A* pathfinder for a drone network."""
+
     def __init__(self, drone_network: DroneNetwork):
+        """Initialize pathfinder with a given drone network."""
         self.network = drone_network
 
         self.hubs = {h["name"]: h for h in drone_network.hubs}
@@ -30,6 +33,7 @@ class AStarPathfinder:
         self.link_reservations: dict[tuple, int] = {}
 
     def __register_path(self, path: list[str]) -> None:
+        """Register a completed path with time-based reservations."""
         for pos in range(len(path)):
             hub = self.__hub_at_time(path, pos)
             if hub:
@@ -43,6 +47,7 @@ class AStarPathfinder:
                 self.link_reservations[lint_at_time] = reserations + 1
 
     def __heuristic(self, hub: str) -> int:
+        """Compute the heuristic distance from hub to goal."""
         hx = self.hubs[hub]["x"]
         hy = self.hubs[hub]["y"]
         gx = self.end["x"]
@@ -52,6 +57,7 @@ class AStarPathfinder:
         return int(abs(hx - gx) + abs(hy - gy))
 
     def __hub_at_time(self, path: list[str], t: int) -> str:
+        """Return the hub occupied at time t in a path."""
         if not path:
             return ""
         t = min(t, len(path) - 1)
@@ -62,6 +68,7 @@ class AStarPathfinder:
         return path[t]
 
     def __link_at_time(self, path: list[str], pos: int) -> str:
+        """Return the link used at a given position in a path."""
         if len(path) <= pos or pos < 0:
             return ""
         next_hub = path[pos]
@@ -72,6 +79,7 @@ class AStarPathfinder:
 
     def __movement_cost(self, curent_hub: str, next_hub: str,
                         pos: int, data: dict) -> tuple[int, int]:
+        """Determine move cost and bonus for transitioning between hubs."""
         bonus = 0
         the_hub = self.hubs.get(next_hub)
         if not the_hub:
@@ -101,6 +109,7 @@ class AStarPathfinder:
         return 1, bonus
 
     def find_path(self) -> list[str]:
+        """Find a single path from start to end using A* search."""
         heap: list[tuple] = []
         name = self.start["name"]
         heapq.heappush(heap, (0, 0, 0, name, [name], None))
@@ -143,6 +152,7 @@ class AStarPathfinder:
         return []
 
     def plan_paths_for_all_drones(self) -> list[list[str]]:
+        """Plan paths for all drones by repeatedly finding paths."""
         self.all_paths = []
         for i in range(self.network.nb_drones):
             path = self.find_path()
@@ -151,6 +161,7 @@ class AStarPathfinder:
         return self.all_paths
 
     def print_moves(self) -> None:
+        """Print the planned moves for all drones turn by turn."""
         if not self.all_paths:
             return
         index = 0
