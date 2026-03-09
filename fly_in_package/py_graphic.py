@@ -14,13 +14,8 @@ import random
 class Hub:
     """Represents a visual hub in the simulation."""
 
-    hub_size = 200
-    hub_scall: float = 1.0
-    hub_image_surface = None
-
-    def __init__(self, image: pygame.Surface, name: str, x: int, y: int, color: tuple, zone: str):
+    def __init__(self, name: str, x: int, y: int, color: tuple, zone: str):
         """Initialize a hub with position, color, and zone."""
-        self.image = image
         self.name = name
         self.SU: float = 1
         self.size = 90
@@ -28,19 +23,11 @@ class Hub:
         self.y = y
         self.color = color
         self.zone = zone
-        if not Hub.hub_image_surface:
-            Hub.hub_image_surface = pygame.transform.smoothscale(
-                    self.image, (Hub.hub_size, Hub.hub_size))
         self.hub_surface = self.__get_hub_surface()
 
     def scall(self, su: float) -> None:
         """Scale the hub visuals by the given scale unit."""
         self.SU = su
-        if Hub.hub_scall != su or not Hub.hub_image_surface:
-            size = Hub.hub_size * su
-            Hub.hub_scall = su
-            Hub.hub_image_surface = pygame.transform.smoothscale(
-                    self.image, (size, size))
         self.hub_surface = self.__get_hub_surface()
 
     def __get_hub_surface(self, size: int = 90) -> pygame.Surface:
@@ -56,35 +43,32 @@ class Hub:
 
         pygame.draw.circle(big_surface, self.color,
                            (center, center), outer_radius)
-        
-        big_surface.blit(Hub.hub_image_surface, (-40, -40))
 
-        # pygame.draw.circle(big_surface, (255, 255, 255),
-        #                    (center, center), inner_radius, 4)
+        pygame.draw.circle(big_surface, (255, 255, 255),
+                           (center, center), inner_radius, 4)
 
-        # # -------- DRAW H --------
-        # h_height = scaled_size
-        # h_width = scaled_size * 0.6
-        # thickness = int(5 * self.SU)
+        # -------- DRAW H --------
+        h_height = scaled_size
+        h_width = scaled_size * 0.6
+        thickness = int(5 * self.SU)
 
-        # left_x = center - h_width // 2
-        # right_x = center + h_width // 2
-        # top_y = center - h_height // 2
-        # bottom_y = center + h_height // 2
-        # mid_y = center
+        left_x = center - h_width // 2
+        right_x = center + h_width // 2
+        top_y = center - h_height // 2
+        bottom_y = center + h_height // 2
+        mid_y = center
 
-        # pygame.draw.line(big_surface, (255, 255, 255), (left_x, top_y),
-        #                  (left_x, bottom_y), thickness)
+        pygame.draw.line(big_surface, (255, 255, 255), (left_x, top_y),
+                         (left_x, bottom_y), thickness)
 
-        # pygame.draw.line(big_surface, (255, 255, 255), (right_x, top_y),
-        #                  (right_x, bottom_y), thickness)
+        pygame.draw.line(big_surface, (255, 255, 255), (right_x, top_y),
+                         (right_x, bottom_y), thickness)
 
-        # pygame.draw.line(big_surface, (255, 255, 255), (left_x, mid_y),
-        #                  (right_x, mid_y), thickness)
+        pygame.draw.line(big_surface, (255, 255, 255), (left_x, mid_y),
+                         (right_x, mid_y), thickness)
 
         return pygame.transform.smoothscale(big_surface, (scaled_size,
                                                           scaled_size))
-
 
 
 class Drone:
@@ -281,8 +265,6 @@ class Py_Game:
                                              ).convert_alpha()
         self.ground_image = pygame.image.load("images/ground.png"
                                               ).convert_alpha()
-        self.hub_image = pygame.image.load("images/hub.png"
-                                              ).convert_alpha()
         self.hubs: list[Hub] = []
         self.connections: list[tuple] = []
         self.ground = self.__scall_image(self.ground_image)
@@ -301,7 +283,6 @@ class Py_Game:
         """Load hubs and connections from a DroneNetwork into the renderer."""
         for hub in network.hubs:
             self.hubs.append(Hub(
-                self.hub_image,
                 hub["name"],
                 hub["x"] * self.GU,
                 hub["y"] * self.GU,
@@ -309,14 +290,12 @@ class Py_Game:
                 hub["zone"]))
 
         self.hubs.append(Hub(
-            self.hub_image,
             network.start["name"],
             network.start["x"] * self.GU,
             network.start["y"] * self.GU,
             self.___get_color(network.start["color"]),
             hub["zone"]))
         self.hubs.append(Hub(
-            self.hub_image,
             network.end["name"],
             network.end["x"] * self.GU,
             network.end["y"] * self.GU,
