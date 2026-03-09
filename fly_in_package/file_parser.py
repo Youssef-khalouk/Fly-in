@@ -63,6 +63,13 @@ class Parser:
                     elif line.strip():
                         self.error = f"unknown line '{line}'"
                         return False
+                
+                if self.end["zone"] == "blocked":
+                    self.error = "the end_hub 'zone' should not be blocked!"
+                    return False
+                if self.start["zone"] == "blocked":
+                    self.error = "the start_hub 'zone' should not be blocked!"
+                    return False
 
         except (FileNotFoundError, Exception) as e:
             self.error = str(e)

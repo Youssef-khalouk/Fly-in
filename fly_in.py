@@ -11,13 +11,16 @@ if __name__ == "__main__":
     parser.set_file(sys.argv[1])
 
     if not parser.parse():
-        print("Error:", parser.error)
+        print("Error:", parser.get_error())
         exit(1)
 
     drone_network = parser.get_DroneNetwork()
 
     a_star = AStarPathfinder(drone_network)
     all_paths = a_star.plan_paths_for_all_drones()
+    if not all_paths:
+        print("error: there is no valid path!")
+        exit(1)
     a_star.print_moves()
 
     my_game = Py_Game()

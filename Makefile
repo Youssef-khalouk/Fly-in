@@ -2,15 +2,13 @@
 install:
 	pip install flake8
 	pip install mypy
-	pip install poetry
 	pip install pygame
-	poetry install
 
 run:
-	python3 main.py
+	python fly_in.py maps/network_of_drones.txt
 
 debug:
-	python -m pdb main.py
+	python -m pdb fly_in.py maps/network_of_drones.txt
 
 clean:
 	rm -rf */__pycache__ .mypy_cache */.mypy_cache */.pytest_cache */build dist */*.egg-info poetry.lock

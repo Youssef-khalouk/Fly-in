@@ -165,13 +165,13 @@ class Drone:
         if self.segment_total_distance != 0:
             progress = traveled / self.segment_total_distance
         progress = max(0, min(1, progress))  # clamp 0..1
-        # smooth speed
+        # if i devide the destense by 10 the speed will be static ()()()
+        # smooth speed using esayin esayout movment
         if zone == "restricted":
             current_speed = (self.speed/2) * 4 * progress * (1 - progress)
-            # current_speed = distance / 20
         else:
             current_speed = self.speed * 4 * progress * (1 - progress)
-            # current_speed = distance / 10
+
         # minimum speed so it doesn't freeze at start
         current_speed = max(current_speed, 0.5)
 
@@ -430,6 +430,7 @@ class Py_Game:
     def __scall_elements(self, scall_size: float) -> None:
         """Adjust zoom level and rescale elements accordingly."""
         old_scale = self.SU
+        self.SU += scall_size
         self.SU = max(0.1, min(self.SU, 4))
         scale_ratio = self.SU / old_scale
         self.font = pygame.font.SysFont(None, int(self.SU * 30))

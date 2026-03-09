@@ -4,7 +4,7 @@ start_hub: hub 0 0 [color=green max_drones=100]
 end_hub: goal 8 8 [color=yellow max_drones=100]
 
 hub: roof1 7 1 [zone=normal color=red]
-hub: roof2 5 4 [zone=restricted color=blue]
+hub: roof2 5 4 [zone=normal color=blue]
 
 
 connection: hub-roof1
