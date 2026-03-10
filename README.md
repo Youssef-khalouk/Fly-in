@@ -77,3 +77,43 @@ These visual features make it easier to understand the path planning decisions a
 
 - A* Search algorithm: https://en.wikipedia.org/wiki/A*_search_algorithm
 - Pygame documentation: https://www.pygame.org/docs/
+
+
+# Movement Mathematics
+
+### polynomial esaing
+$f(t) = 3t^2 - 2t^3$
+
+or
+
+$f(t)=t^2(3−2t)$
+
+    for step in range(21):
+        progress = step / 20   # 0.0 -> 1.0
+        ease = 3*progress**2 - 2*progress**3
+        value = start + ((end - start) * ease)
+
+
+### cosine easing
+
+$f(t)=0.5−0.5cos(πt)$
+
+same as:
+
+$f(t) = \frac{1 - \cos(\pi t)}{2}$
+
+    for step in range(21):
+        progress = step / 20
+        ease = .5 - (.5 * math.cos(math.pi * progress))
+        value = start + ((end - start) * ease)
+
+
+## calcualte distence 
+  $d = √((x₂ − x₁)² + (y₂ − y₁)²)$
+
+    x1, y1 = 2, 3
+    x2, y2 = 6, 7
+
+    distance = math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+    print(distance)
