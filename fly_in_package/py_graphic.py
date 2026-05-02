@@ -372,6 +372,9 @@ class Py_Game:
                     )
                 )
             for hub in self.hubs:
+                if ((hub.x *self.SU + self.canvas_x) > self.width
+                    or (hub.x *self.SU + self.canvas_x) < -(hub.size * self.SU)):
+                    continue
                 self.screen.blit(hub.hub_surface, (
                     self.canvas_x + (hub.x*self.SU),
                     self.canvas_y + (hub.y*self.SU)
@@ -421,6 +424,9 @@ class Py_Game:
                 self.running = False
 
             if event.type == pygame.MOUSEWHEEL:
+                if ((event.y == 1 and self.SU == 4) 
+                    or (event.y == -1 and self.SU == 0.1)):
+                    continue
                 self.__scall_elements(event.y * 0.4)
 
             if event.type == pygame.KEYDOWN:
